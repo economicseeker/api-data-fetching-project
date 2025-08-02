@@ -1,4 +1,4 @@
-import axios from 'axios';
+const axios = require ('axios');
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -14,22 +14,30 @@ const REST_COUNTRIES_API = process.env.REST_COUNTRIES_API_URL;
 
 // Fetch data about currencies
 const getExchangeRate = async (fromCurrency, toCurrency) => {
-    const { data: { rates } } = await axios.get(FIXER_API);
+    try {
+        const { data: { rates } } = await axios.get(FIXER_API);
 
-    const euro = 1 / rates[fromCurrency]; //?
-    const exchangeRate = euro * rates[toCurrency]; //?
-
-    return exchangeRate;
+        const euro = 1 / rates[fromCurrency]; //?
+        const exchangeRate = euro * rates[toCurrency]; //?
+    
+        return exchangeRate;
+    } catch (error) {
+        throw new Error(`Unable to get exchange rate for ${fromCurrency} and ${toCurrency}.`);
+    }
 }
 
 //getExchangeRate('USD', 'AUD') //?
 
 // Fetch data  about countries
 const getCountries = async (currencyCode) => {
-    const { data } = await axios.get(`${REST_COUNTRIES_API}/${currencyCode}`);
-
-    return data.map(({ name }) => name.common); //?
-
+    try {   
+        const { data } = await axios.get(`${REST_COUNTRIES_API}/${currencyCode}`);
+        return data.map(({ name }) => name.common); //?
+    
+    } catch (error) {
+        throw new Error(`Unable to get countries for ${currencyCode}.`);
+   
+    }
 }
 
 // getCountries('AUD') //?
@@ -39,8 +47,8 @@ const convertCurrency = async (fromCurrency, toCurrency, amount) => {
     toCurrency = toCurrency.toUpperCase();
 
     const [countries, exchangeRate] = await Promise.all([
-        await getCountries(toCurrency),
-        await getExchangeRate(fromCurrency, toCurrency)
+         getCountries(toCurrency),
+         getExchangeRate(fromCurrency, toCurrency)
     ]);
 
 
